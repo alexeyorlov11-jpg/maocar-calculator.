@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b91c1c">
+<title>MAOCAR — калькулятор авто</title>
+<style>
+:root{--red:#b91c1c;--bg:#f5f5f5;--card:#fff;--text:#171717;--muted:#737373;--line:#e5e5e5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:#fff;border-bottom:3px solid var(--red);padding:18px 16px 14px;position:sticky;top:0;z-index:2}
+.brand{font-weight:900;font-size:25px;letter-spacing:1px}.sub{font-size:11px;letter-spacing:1.4px;color:var(--muted);margin-top:3px}
+main{max-width:720px;margin:0 auto;padding:14px 12px 40px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+h2{font-size:17px;margin:0 0 14px}label{display:block;font-size:13px;color:#525252;margin:0 0 6px}
+input,select{width:100%;min-height:46px;border:1px solid #d4d4d4;border-radius:10px;padding:10px 11px;font:inherit;background:white;color:var(--text)}
+input:focus,select:focus{outline:2px solid #fecaca;border-color:var(--red)}
+.field{margin-bottom:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{font-size:12px;color:var(--muted);line-height:1.45;margin-top:7px}
+.ratebox{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:12px}.line{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin:8px 0}.line span{font-size:13px;color:var(--muted)}.line strong{text-align:right;font-variant-numeric:tabular-nums}
+.total{background:#fff7f7;border:1px solid #fecaca;border-radius:14px;padding:16px}.total .caption{font-size:12px;letter-spacing:1px;color:#7f1d1d}.total .amount{font-size:30px;font-weight:850;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+button{border:0;border-radius:11px;padding:13px 14px;font:600 15px inherit;min-height:46px;cursor:pointer}.primary{background:var(--red);color:#fff;width:100%}.secondary{background:#fff;border:1px solid #d4d4d4;color:#171717;width:100%}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.note{font-size:12px;color:var(--muted);line-height:1.5}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:4px 10px 20px}
+@media(max-width:420px){.grid{gap:9px}.card{padding:14px}.total .amount{font-size:27px}}
+</style>
+</head>
+<body>
+<header><div class="brand">MAOCAR</div><div class="sub">КАЛЬКУЛЯТОР СТОИМОСТИ АВТО</div></header>
+<main>
+  <section class="card">
+    <h2>1. Автомобиль</h2>
+    <div class="field"><label for="car">Марка и модель</label><input id="car" value="Toyota RAV4" autocomplete="off"></div>
+    <div class="grid">
+      <div class="field"><label for="yuan">Цена автомобиля (¥)</label><input id="yuan" type="number" min="0" step="any" value="83800"></div>
+      <div class="field"><label for="city">Город доставки</label><input id="city" value="Владивосток"></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>2. Курс и банковская комиссия</h2>
+    <div class="grid">
+      <div class="field"><label for="finam">Курс Финам (₽/¥)</label><input id="finam" type="number" min="0" step="any" value="12.534"></div>
+      <div class="field"><label for="markup">Надбавка на конвертацию (₽)</label><input id="markup" type="number" min="0" step="any" value="0.1"></div>
+    </div>
+    <div class="field">
+      <label for="method">Способ оплаты</label>
+      <select id="method"><option value="account">Перевод со счёта — 2% (по чеку)</option><option value="cash">Наличными через кассу — 2,5%</option><option value="custom">Ввести комиссию вручную</option></select>
+    </div>
+    <div class="field"><label for="bankPct">Комиссия перевода (%)</label><input id="bankPct" type="number" min="0" step="any" value="2"></div>
+    <div class="field">
+      <label for="rateMode">Как получить итоговый курс</label>
+      <select id="rateMode">
+        <option value="manual">Ввести итоговый курс вручную</option>
+        <option value="exact">Финам + надбавка, затем комиссия (точно)</option>
+        <option value="floor3">Формула, затем отбросить знаки после 3-го десятичного</option>
+        <option value="round3">Формула, округлить до 3 знаков</option>
+      </select>
+    </div>
+    <div class="field" id="manualRateWrap"><label for="manualRate">Итоговый курс для расчёта (₽/¥)</label><input id="manualRate" type="number" min="0" step="any" value="12.886"></div>
+    <div class="ratebox">
+      <div class="line"><span>Курс после надбавки</span><strong id="baseRate">12,634 ₽</strong></div>
+      <div class="line"><span>Расчётный курс</span><strong id="effectiveRate">12,886 ₽</strong></div>
+      <div class="line"><span>Комиссия банка в пересчёте на цену авто</span><strong id="bankCost">21 820,00 ₽</strong></div>
+      <div class="hint">Комиссия в чеке была 876 ¥ от перевода 43 800 ¥ — это 2%. Для других операций тариф нужно сверять. Эта модель применяет процент к валютной части; она не заменяет фактический курс/списание ВТБ.</div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>3. Остальные расходы (₽)</h2>
+    <div class="grid">
+      <div class="field"><label for="duty">Таможенная пошлина</label><input id="duty" type="number" min="0" step="any" value="252308.98"></div>
+      <div class="field"><label for="broker">Брокер</label><input id="broker" type="number" min="0" step="any" value="65000"></div>
+      <div class="field"><label for="company">Комиссия MAOCAR</label><input id="company" type="number" min="0" step="any" value="60000"></div>
+      <div class="field"><label for="delivery">Доставка</label><input id="delivery" type="number" min="0" step="any" value="0"></div>
+      <div class="field"><label for="other">Прочие расходы</label><input id="other" type="number" min="0" step="any" value="0"></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>4. Итоговый расчёт</h2>
+    <div class="total">
+      <div class="caption">ИТОГО ПОД КЛЮЧ</div>
+      <div class="amount" id="total">1 457 155,78 ₽</div>
+      <div class="line"><span>Автомобиль с валютными расходами</span><strong id="carRub">1 079 846,80 ₽</strong></div>
+      <div class="line"><span>Все дополнительные расходы</span><strong id="extras">377 308,98 ₽</strong></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="copy">Скопировать расчёт</button>
+      <button class="secondary" id="save">Сохранить расчёт</button>
+    </div>
+    <div class="hint" id="saveStatus">Сохранённые расчёты хранятся в этом браузере на этом устройстве.</div>
+  </section>
+  <section class="card">
+    <h2>Сохранённые расчёты</h2>
+    <div id="savedList" class="note">Пока нет сохранённых расчётов.</div>
+  </section>
+  <p class="note">Важно: курс Финам, надбавка и комиссия — редактируемые параметры. Перед реальной оплатой сверяй фактический курс и комиссию ВТБ. Никакие данные не отправляются на сервер этим файлом.</p>
+</main>
+<footer>MAOCAR · локальный калькулятор</footer>
+<script>
+const ids=['car','yuan','city','finam','markup','method','bankPct','rateMode','manualRate','duty','broker','company','delivery','other'];
+const $=id=>document.getElementById(id);
+const val=id=>Math.max(0,Number($(id).value)||0);
+const fmt=(x,dec=2)=>Number(x).toLocaleString('ru-RU',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const rub=x=>fmt(x,2)+' ₽';
+function getRate(){
+ const base=val('finam')+val('markup');
+ const formula=base*(1+val('bankPct')/100);
+ let rate=formula, mode=$('rateMode').value;
+ if(mode==='manual') rate=val('manualRate');
+ if(mode==='floor3') rate=Math.floor((formula+1e-10)*1000)/1000;
+ if(mode==='round3') rate=Math.round(formula*1000)/1000;
+ return {base,formula,rate};
+}
+function calculate(){
+ const r=getRate(), price=val('yuan'), carRub=price*r.rate;
+ const extras=val('duty')+val('broker')+val('company')+val('delivery')+val('other');
+ const total=carRub+extras;
+ $('baseRate').textContent=fmt(r.base,3)+' ₽';
+ $('effectiveRate').textContent=fmt(r.rate,5)+' ₽';
+ $('bankCost').textContent=rub(price*r.rate-price*r.base);
+ $('carRub').textContent=rub(carRub);$('extras').textContent=rub(extras);$('total').textContent=rub(total);
+ $('manualRateWrap').style.display=$('rateMode').value==='manual'?'block':'none';
+ return {r,price,carRub,extras,total};
+}
+function summary(){
+ const c=calculate(), m=$('method').selectedOptions[0].textContent;
+ return `MAOCAR — предварительный расчёт\nАвтомобиль: ${$('car').value||'Не указан'}\nЦена: ${fmt(c.price,2)} ¥\nКурс Финам: ${$('finam').value} ₽/¥\nНадбавка: ${$('markup').value} ₽\nСпособ оплаты: ${m}\nКомиссия: ${$('bankPct').value}%\nИтоговый курс: ${fmt(c.r.rate,5)} ₽/¥\nАвтомобиль с валютными расходами: ${rub(c.carRub)}\nПошлина: ${rub(val('duty'))}\nБрокер: ${rub(val('broker'))}\nКомиссия MAOCAR: ${rub(val('company'))}\nДоставка: ${rub(val('delivery'))}\nПрочие расходы: ${rub(val('other'))}\nГород доставки: ${$('city').value}\nИТОГО: ${rub(c.total)}\nПредварительный расчёт; фактический курс и комиссии необходимо подтвердить перед оплатой.`;
+}
+function loadSaved(){
+ let arr=[];try{arr=JSON.parse(localStorage.getItem('maocar_saved')||'[]')}catch(e){}
+ $('savedList').innerHTML='';
+ if(!arr.length){$('savedList').textContent='Пока нет сохранённых расчётов.';return;}
+ arr.forEach((x,i)=>{
+  const div=document.createElement('div');div.style.cssText='border-top:1px solid #e5e5e5;padding:12px 0;display:flex;gap:8px;align-items:center;justify-content:space-between';
+  const info=document.createElement('div');info.innerHTML='<strong></strong><div class="note"></div>';info.children[0].textContent=x.car;info.children[1].textContent=x.total;
+  const btn=document.createElement('button');btn.className='secondary';btn.style.width='auto';btn.textContent='Копировать';btn.onclick=()=>copyText(x.text);
+  const del=document.createElement('button');del.className='secondary';del.style.width='auto';del.textContent='Удалить';del.onclick=()=>{arr.splice(i,1);localStorage.setItem('maocar_saved',JSON.stringify(arr));loadSaved()};
+  div.append(info,btn,del);$('savedList').append(div);
+ });
+}
+async function copyText(text){
+ try{await navigator.clipboard.writeText(text);$('saveStatus').textContent='Расчёт скопирован.'}
+ catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();$('saveStatus').textContent=ok?'Расчёт скопирован.':'Не удалось скопировать автоматически — выдели текст вручную.'}
+}
+ids.forEach(id=>$(id).addEventListener('input',()=>{if(id==='method'){if($('method').value==='account')$('bankPct').value='2';if($('method').value==='cash')$('bankPct').value='2.5'}calculate()}));
+$('method').addEventListener('change',()=>{if($('method').value==='account')$('bankPct').value='2';else if($('method').value==='cash')$('bankPct').value='2.5';calculate()});
+$('copy').onclick=()=>copyText(summary());
+$('save').onclick=()=>{
+ const c=calculate();let arr=[];try{arr=JSON.parse(localStorage.getItem('maocar_saved')||'[]')}catch(e){}
+ arr.unshift({car:$('car').value||'Автомобиль',total:rub(c.total),text:summary(),date:new Date().toISOString()});
+ try{localStorage.setItem('maocar_saved',JSON.stringify(arr.slice(0,30)));$('saveStatus').textContent='Расчёт сохранён на этом устройстве.';loadSaved()}
+ catch(e){$('saveStatus').textContent='Браузер не разрешил сохранить данные. Попробуй после размещения файла на HTTPS-сайте.'}
+};
+calculate();loadSaved();
+</script>
+</body>
+</html>
